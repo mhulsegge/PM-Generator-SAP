@@ -4,6 +4,10 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import '../css/app.css';
 import { initializeTheme } from './hooks/use-appearance';
+import { route } from 'ziggy-js';
+
+// @ts-ignore
+window.route = route;
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

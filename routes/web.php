@@ -29,6 +29,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Projects CRUD Routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('projects', ProjectController::class)->except(['show']);
+    Route::resource('maintenance-tasks', \App\Http\Controllers\MaintenanceTaskController::class);
+    Route::resource('master-data', \App\Http\Controllers\MasterDataController::class)->except(['create', 'show', 'edit']);
 });
 
 // Socialite OAuth Routes
@@ -39,4 +41,4 @@ Route::middleware('guest')->group(function () {
         ->name('socialite.callback');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';
