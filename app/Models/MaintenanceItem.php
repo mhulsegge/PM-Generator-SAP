@@ -12,6 +12,9 @@ class MaintenanceItem extends Model
         'object_id',
         'object_description',
         'location',
+        'planner_group',
+        'main_work_center',
+        'order_type',
     ];
 
     public function task()

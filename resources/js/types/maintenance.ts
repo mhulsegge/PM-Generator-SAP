@@ -1,6 +1,7 @@
 export interface MaintenanceTask {
     id?: number;
     user_id?: number;
+    maintenance_plan_id?: number;
     name: string;
     description?: string;
     status: 'draft' | 'ready' | 'active';
@@ -14,14 +15,19 @@ export interface MaintenanceTask {
 
 export interface MaintenancePlan {
     id?: number;
-    maintenance_task_id?: number;
+    name?: string;
     frequency_unit: string;
     frequency_value: number;
     call_horizon_unit?: string;
     call_horizon_value?: number;
     start_date?: string;
-    is_strategy_plan: boolean;
+    is_strategy_plan?: boolean;
     strategy_package?: string;
+    scheduling_period_value?: number;
+    scheduling_period_unit?: string;
+    order_type?: string;
+    completion_requirement?: boolean;
+    auto_order_generation?: boolean;
 }
 
 export interface MaintenanceItem {
@@ -31,6 +37,9 @@ export interface MaintenanceItem {
     object_id: string;
     object_description?: string;
     location?: string;
+    planner_group?: string;
+    main_work_center?: string;
+    order_type?: string;
 }
 
 export interface TaskList {
@@ -42,6 +51,9 @@ export interface TaskList {
     plant?: string;
     status: string;
     group_counter?: string;
+    strategy_package?: string;
+    usage?: string;
+    general_instructions?: string;
     operations?: TaskListOperation[];
 }
 
@@ -56,6 +68,7 @@ export interface TaskListOperation {
     duration_normal?: number;
     duration_unit: string;
     number_of_people: number;
+    strategy_package?: string;
     materials?: OperationMaterial[];
     documents?: OperationDocument[];
 }

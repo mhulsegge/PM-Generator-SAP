@@ -14,6 +14,9 @@ class TaskList extends Model
         'plant',
         'status',
         'group_counter',
+        'strategy_package',
+        'general_instructions',
+        'usage',
     ];
 
     public function task()

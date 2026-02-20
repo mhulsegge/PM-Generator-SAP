@@ -12,6 +12,7 @@ class MaintenanceTask extends Model
         'description',
         'status',
         'is_sap_ready',
+        'maintenance_plan_id',
     ];
 
     public function user()
@@ -21,7 +22,7 @@ class MaintenanceTask extends Model
 
     public function plan()
     {
-        return $this->hasOne(MaintenancePlan::class);
+        return $this->belongsTo(MaintenancePlan::class, 'maintenance_plan_id');
     }
 
     public function items()

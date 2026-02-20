@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, Bot, Database, Folder, FolderKanban, LayoutGrid, Wrench } from 'lucide-react';
+import { BookOpen, Bot, Database, Folder, FolderKanban, LayoutGrid, Wrench, Package, Hexagon, Network } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -33,9 +33,24 @@ const mainNavItems: NavItem[] = [
         icon: Wrench,
     },
     {
+        title: 'Artikelen',
+        href: '/articles',
+        icon: Package,
+    },
+    {
+        title: 'SAP Objecten',
+        href: '/sap-objects',
+        icon: Hexagon,
+    },
+    {
         title: 'Stamgegevens',
         href: '/master-data',
         icon: Database,
+    },
+    {
+        title: 'Strategieën',
+        href: '/strategies',
+        icon: Network,
     },
     {
         title: 'AI Chat',

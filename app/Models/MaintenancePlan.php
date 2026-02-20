@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class MaintenancePlan extends Model
 {
     protected $fillable = [
-        'maintenance_task_id',
+        'name',
         'frequency_unit',
         'frequency_value',
         'call_horizon_unit',
@@ -16,10 +16,21 @@ class MaintenancePlan extends Model
         'is_strategy_plan',
         'strategy_package',
         'discipline',
+        'scheduling_period_value',
+        'scheduling_period_unit',
+        'order_type',
+        'completion_requirement',
+        'auto_order_generation',
     ];
 
+    public function tasks()
+    {
+        return $this->hasMany(MaintenanceTask::class, 'maintenance_plan_id');
+    }
+
+    /** @deprecated Use tasks() instead */
     public function task()
     {
-        return $this->belongsTo(MaintenanceTask::class, 'maintenance_task_id');
+        return $this->tasks()->first();
     }
 }

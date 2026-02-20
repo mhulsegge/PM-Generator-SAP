@@ -16,6 +16,7 @@ class TaskListOperation extends Model
         'duration_normal',
         'duration_unit',
         'number_of_people',
+        'strategy_package',
     ];
 
     public function taskList()
