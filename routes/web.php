@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AI\ChatController;
 use App\Http\Controllers\Auth\SocialiteController;
-use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\SapObjectController;
 use Illuminate\Support\Facades\Route;
@@ -15,9 +14,9 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 // AI Chat Routes
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -28,11 +27,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('api/chat', [ChatController::class, 'chat'])->name('api.chat');
 });
 
-// Projects CRUD Routes
+// Projects CRUD Routes (Removed)
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('projects', ProjectController::class)->except(['show']);
-    Route::post('maintenance-tasks/import/upload', [\App\Http\Controllers\MaintenanceTaskController::class, 'importUpload'])->name('maintenance-tasks.import.upload');
-    Route::post('maintenance-tasks/import/process', [\App\Http\Controllers\MaintenanceTaskController::class, 'importProcess'])->name('maintenance-tasks.import.process');
     Route::post('maintenance-tasks/bulk-delete', [\App\Http\Controllers\MaintenanceTaskController::class, 'bulkDelete'])->name('maintenance-tasks.bulk-delete');
     Route::post('maintenance-tasks/bulk-status', [\App\Http\Controllers\MaintenanceTaskController::class, 'bulkStatus'])->name('maintenance-tasks.bulk-status');
     Route::post('maintenance-tasks/merge', [\App\Http\Controllers\MaintenanceTaskController::class, 'mergeTasks'])->name('maintenance-tasks.merge');
@@ -61,7 +57,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('strategies/packages/{package}', [\App\Http\Controllers\MaintenanceStrategyController::class, 'destroyPackage'])->name('strategies.packages.destroy');
 
     Route::resource('maintenance-tasks', \App\Http\Controllers\MaintenanceTaskController::class);
-    Route::resource('master-data', \App\Http\Controllers\MasterDataController::class)->except(['create', 'show', 'edit']);
+    Route::resource('master-data', \App\Http\Controllers\MasterDataController::class)
+        ->parameters(['master-data' => 'masterData'])
+        ->except(['create', 'show', 'edit']);
     Route::resource('articles', ArticleController::class)->except(['create', 'show', 'edit']);
     Route::resource('sap-objects', SapObjectController::class)->except(['create', 'show', 'edit']);
     Route::resource('strategies', \App\Http\Controllers\MaintenanceStrategyController::class)->except(['create', 'show', 'edit']);

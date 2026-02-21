@@ -80,12 +80,19 @@ class MaintenanceTaskController extends Controller
             abort(403);
         }
 
-        $maintenanceTask->load('plan');
+        $maintenanceTask->load(['plan', 'items']);
 
         $masterData = [
             'strategies' => \App\Models\MaintenanceStrategy::with('packages')->orderBy('name')->get(),
             'frequencyUnits' => MasterData::where('category', 'frequency_unit')->where('is_active', true)->orderBy('sort_order')->get(),
             'orderTypes' => MasterData::where('category', 'order_type')->where('is_active', true)->orderBy('sort_order')->get(),
+            'disciplines' => MasterData::where('category', 'discipline')->where('is_active', true)->orderBy('sort_order')->get(),
+            // Defaults: the key of the default item for each category (null if none)
+            'defaults' => [
+                'order_type' => MasterData::where('category', 'order_type')->where('is_default', true)->value('key'),
+                'frequency_unit' => MasterData::where('category', 'frequency_unit')->where('is_default', true)->value('key'),
+                'discipline' => MasterData::where('category', 'discipline')->where('is_default', true)->value('key'),
+            ],
         ];
 
         return Inertia::render('maintenance-tasks/plan', [

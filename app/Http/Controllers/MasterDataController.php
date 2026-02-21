@@ -45,10 +45,19 @@ class MasterDataController extends Controller
     public function update(Request $request, MasterData $masterData)
     {
         $validated = $request->validate([
+            'key' => 'sometimes|string|unique:master_data,key,' . $masterData->id . ',id,category,' . $masterData->category,
             'label' => 'sometimes|string',
             'sort_order' => 'sometimes|integer',
             'is_active' => 'sometimes|boolean',
+            'is_default' => 'sometimes|boolean',
         ]);
+
+        // If setting this item as default, first clear defaults in the same category
+        if (!empty($validated['is_default'])) {
+            MasterData::where('category', $masterData->category)
+                ->where('id', '!=', $masterData->id)
+                ->update(['is_default' => false]);
+        }
 
         $masterData->update($validated);
 

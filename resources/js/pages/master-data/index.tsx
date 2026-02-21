@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Head, router, useForm, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,8 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Plus, Trash, ArrowLeft, Wrench, Calendar, Clock, Lock, Users, Building2, FileType, Factory, Upload } from 'lucide-react';
+import { Plus, Trash, ArrowLeft, Wrench, Calendar, Clock, Lock, Users, Building2, FileType, Factory, Upload, Pencil } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 interface MasterDataItem {
     id: number;
@@ -31,6 +32,7 @@ interface MasterDataItem {
     label: string;
     sort_order: number;
     is_active: boolean;
+    is_default: boolean;
 }
 
 interface Props {
@@ -40,7 +42,6 @@ interface Props {
 
 const CATEGORIES = [
     { id: 'discipline', label: 'Vakdisciplines', description: 'Beheer de verschillende vakdisciplines (bijv. W, E, I).', icon: Wrench },
-    { id: 'strategy_package', label: 'Strategie Packages', description: 'Definieer en beheer de standaard operationele strategie pakketten.', icon: Calendar },
     { id: 'frequency_unit', label: 'Frequentie Eenheden', description: 'Onderhoud de mogelijke eenheden voor frequenties en cyclustijden.', icon: Clock },
     { id: 'control_key', label: 'Stuurcodes', description: 'Beheer de stuurcodes die gelden voor onderhoudsbewerkingen.', icon: Lock },
     { id: 'planner_group', label: 'Planner Groups', description: 'Verantwoordelijke planningsgroepen voor onderhoud.', icon: Users },
@@ -51,26 +52,58 @@ const CATEGORIES = [
 
 export default function MasterDataIndex({ category, items }: Props) {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState<MasterDataItem | null>(null);
 
     const activeCategory = CATEGORIES.find(c => c.id === category);
 
     // Form for creating new items
-    const { data, setData, post, processing, reset, errors } = useForm({
+    const { data: createData, setData: setCreateData, post: createPost, processing: createProcessing, reset: createReset, errors: createErrors } = useForm({
         category: category || '',
         key: '',
         label: '',
         sort_order: 0,
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        data.category = category || ''; // Ensure category is set correctly
+    const { data: editData, setData: setEditData, patch: editPatch, processing: editProcessing, reset: editReset, errors: editErrors } = useForm({
+        key: '',
+        label: '',
+        sort_order: 0,
+        is_default: false,
+    });
 
-        post(route('master-data.store'), {
+    useEffect(() => {
+        if (editingItem) {
+            setEditData({
+                key: editingItem.key,
+                label: editingItem.label,
+                sort_order: editingItem.sort_order,
+                is_default: !!editingItem.is_default,
+            });
+        }
+    }, [editingItem]);
+
+    const handleCreateSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        createData.category = category || ''; // Ensure category is set correctly
+
+        createPost(route('master-data.store'), {
             onSuccess: () => {
                 setIsCreateOpen(false);
-                reset();
+                createReset();
             }
+        });
+    };
+
+    const handleEditSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingItem) return;
+
+        editPatch(route('master-data.update', editingItem.id), {
+            onSuccess: () => {
+                setEditingItem(null);
+                editReset();
+            },
+            preserveScroll: true,
         });
     };
 
@@ -166,40 +199,99 @@ export default function MasterDataIndex({ category, items }: Props) {
                                                     Voeg een nieuwe optie toe aan {activeCategory?.label}.
                                                 </DialogDescription>
                                             </DialogHeader>
-                                            <form onSubmit={handleSubmit} className="space-y-4">
+                                            <form onSubmit={handleCreateSubmit} className="space-y-4">
                                                 <div className="grid gap-2">
-                                                    <Label htmlFor="key">Code / Sleutel</Label>
+                                                    <Label htmlFor="create-key">Code / Sleutel</Label>
                                                     <Input
-                                                        id="key"
-                                                        value={data.key}
-                                                        onChange={e => setData('key', e.target.value)}
+                                                        id="create-key"
+                                                        value={createData.key}
+                                                        onChange={e => setCreateData('key', e.target.value)}
                                                         placeholder="bv. W, 1M, WK"
                                                         required
                                                     />
-                                                    {errors.key && <p className="text-destructive text-sm">{errors.key}</p>}
+                                                    {createErrors.key && <p className="text-destructive text-sm">{createErrors.key}</p>}
                                                 </div>
                                                 <div className="grid gap-2">
-                                                    <Label htmlFor="label">Omschrijving / Label</Label>
+                                                    <Label htmlFor="create-label">Omschrijving / Label</Label>
                                                     <Input
-                                                        id="label"
-                                                        value={data.label}
-                                                        onChange={e => setData('label', e.target.value)}
+                                                        id="create-label"
+                                                        value={createData.label}
+                                                        onChange={e => setCreateData('label', e.target.value)}
                                                         placeholder="bv. Werktuigbouw, Maandelijks"
                                                         required
                                                     />
-                                                    {errors.label && <p className="text-destructive text-sm">{errors.label}</p>}
+                                                    {createErrors.label && <p className="text-destructive text-sm">{createErrors.label}</p>}
                                                 </div>
                                                 <div className="grid gap-2">
-                                                    <Label htmlFor="sort">Sorteervolgorde</Label>
+                                                    <Label htmlFor="create-sort">Sorteervolgorde</Label>
                                                     <Input
-                                                        id="sort"
+                                                        id="create-sort"
                                                         type="number"
-                                                        value={data.sort_order}
-                                                        onChange={e => setData('sort_order', parseInt(e.target.value))}
+                                                        value={createData.sort_order}
+                                                        onChange={e => setCreateData('sort_order', parseInt(e.target.value))}
                                                     />
                                                 </div>
                                                 <DialogFooter>
-                                                    <Button type="submit" disabled={processing}>Opslaan</Button>
+                                                    <Button type="submit" disabled={createProcessing}>Opslaan</Button>
+                                                </DialogFooter>
+                                            </form>
+                                        </DialogContent>
+                                    </Dialog>
+
+                                    {/* Edit Item Dialog */}
+                                    <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Item Bewerken</DialogTitle>
+                                                <DialogDescription>
+                                                    Bewerk de gegevens van dit stamgegeven.
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <form onSubmit={handleEditSubmit} className="space-y-4">
+                                                <div className="grid gap-2">
+                                                    <Label htmlFor="edit-key">Code / Sleutel</Label>
+                                                    <Input
+                                                        id="edit-key"
+                                                        value={editData.key}
+                                                        onChange={e => setEditData('key', e.target.value)}
+                                                        required
+                                                    />
+                                                    {editErrors.key && <p className="text-destructive text-sm">{editErrors.key}</p>}
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label htmlFor="edit-label">Omschrijving / Label</Label>
+                                                    <Input
+                                                        id="edit-label"
+                                                        value={editData.label}
+                                                        onChange={e => setEditData('label', e.target.value)}
+                                                        required
+                                                    />
+                                                    {editErrors.label && <p className="text-destructive text-sm">{editErrors.label}</p>}
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label htmlFor="edit-sort">Sorteervolgorde</Label>
+                                                    <Input
+                                                        id="edit-sort"
+                                                        type="number"
+                                                        value={editData.sort_order}
+                                                        onChange={e => setEditData('sort_order', parseInt(e.target.value) || 0)}
+                                                    />
+                                                </div>
+                                                <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                                    <div className="space-y-0.5">
+                                                        <Label className="text-base">Standaard Waarde</Label>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Stel dit item in als de standaard geselecteerde optie.
+                                                        </p>
+                                                    </div>
+                                                    <Switch
+                                                        checked={editData.is_default}
+                                                        onCheckedChange={checked => setEditData('is_default', checked)}
+                                                        aria-label="Set as default"
+                                                    />
+                                                </div>
+                                                <DialogFooter>
+                                                    <Button type="submit" disabled={editProcessing}>Wijzigingen Opslaan</Button>
                                                 </DialogFooter>
                                             </form>
                                         </DialogContent>
@@ -214,6 +306,7 @@ export default function MasterDataIndex({ category, items }: Props) {
                                             <TableHead className="w-[120px]">Code</TableHead>
                                             <TableHead>Omschrijving</TableHead>
                                             <TableHead className="w-[100px]">Volgorde</TableHead>
+                                            <TableHead className="w-[90px] text-center">Standaard</TableHead>
                                             <TableHead className="w-[100px] text-right">Acties</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -226,14 +319,44 @@ export default function MasterDataIndex({ category, items }: Props) {
                                             </TableRow>
                                         ) : (
                                             items.map((item) => (
-                                                <TableRow key={item.id}>
+                                                <TableRow
+                                                    key={item.id}
+                                                    onDoubleClick={() => setEditingItem(item)}
+                                                    className="cursor-pointer"
+                                                    title="Dubbelklik om te bewerken"
+                                                >
                                                     <TableCell className="font-mono font-medium text-primary/80">{item.key}</TableCell>
                                                     <TableCell>{item.label}</TableCell>
                                                     <TableCell>{item.sort_order}</TableCell>
-                                                    <TableCell className="text-right">
+                                                    <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                                                        <div className="flex justify-center items-center">
+                                                            <Switch
+                                                                checked={!!item.is_default}
+                                                                onCheckedChange={(checked) =>
+                                                                    router.patch(
+                                                                        route('master-data.update', item.id),
+                                                                        { is_default: checked },
+                                                                        { preserveScroll: true, preserveState: true }
+                                                                    )
+                                                                }
+                                                                aria-label="Set as default"
+                                                            />
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
+                                                            title="Bewerken"
+                                                            className="text-muted-foreground hover:text-primary"
+                                                            onClick={() => setEditingItem(item)}
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            title="Verwijderen"
                                                             className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                                             onClick={() => handleDelete(item.id)}
                                                         >

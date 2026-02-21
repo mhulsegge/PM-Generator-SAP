@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, Bot, Database, Folder, FolderKanban, LayoutGrid, Wrench, Package, Hexagon, Network } from 'lucide-react';
+import { BookOpen, Bot, Database, Folder, LayoutGrid, Wrench, Package, Hexagon, Network } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -21,11 +21,6 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
-    },
-    {
-        title: 'Projecten',
-        href: '/projects',
-        icon: FolderKanban,
     },
     {
         title: 'Onderhoudstaken',
