@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('maintenance_plans', function (Blueprint $table) {
-            $table->string('discipline')->nullable()->after('is_strategy_plan');
-        });
+        if (!Schema::hasColumn('maintenance_plans', 'discipline')) {
+            Schema::table('maintenance_plans', function (Blueprint $table) {
+                $table->string('discipline')->nullable()->after('is_strategy_plan');
+            });
+        }
     }
 
     public function down(): void

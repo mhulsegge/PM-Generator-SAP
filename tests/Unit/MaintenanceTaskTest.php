@@ -3,6 +3,8 @@
 use App\Models\MaintenanceTask;
 use App\Models\User;
 
+uses(Tests\TestCase::class);
+
 test('it has fillable attributes', function () {
     $task = new MaintenanceTask([
         'name' => 'Test Task',
@@ -18,9 +20,9 @@ test('it belongs to a user', function () {
     expect($task->user())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);
 });
 
-test('it has one plan', function () {
+test('it belongs to a plan', function () {
     $task = new MaintenanceTask();
-    expect($task->plan())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\HasOne::class);
+    expect($task->plan())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);
 });
 
 test('it has many items', function () {
