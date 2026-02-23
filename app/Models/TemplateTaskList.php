@@ -4,29 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TaskList extends Model
+class TemplateTaskList extends Model
 {
     protected $fillable = [
-        'maintenance_task_id',
-        'type',
+        'name',
         'description',
         'work_center',
         'plant',
-        'status',
-        'group_counter',
-        'maintenance_strategy_id',
         'general_instructions',
         'usage',
+        'maintenance_strategy_id',
     ];
-
-    public function task()
-    {
-        return $this->belongsTo(MaintenanceTask::class, 'maintenance_task_id');
-    }
 
     public function operations()
     {
-        return $this->hasMany(TaskListOperation::class);
+        return $this->hasMany(TemplateTaskListOperation::class);
     }
 
     public function strategy()

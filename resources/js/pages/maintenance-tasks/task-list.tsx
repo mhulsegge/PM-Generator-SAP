@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm, router } from '@inertiajs/react';
 import TaskLayout from './layout';
-import { MaintenanceTask, TaskList, TaskListOperation } from '@/types/maintenance';
+import { MaintenanceTask, TaskList, TaskListOperation, TemplateTaskList } from '@/types/maintenance';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -21,22 +21,28 @@ interface Props {
         workCenters: any[];
         plants: any[];
         articles: any[];
+        templates?: TemplateTaskList[];
     };
 }
 
 export default function EditTaskList({ task, masterData }: Props) {
-    const { strategies, controlKeys, workCenters, plants, articles } = masterData;
+    const { strategies, controlKeys, workCenters, plants, articles, templates = [] } = masterData;
     const [managingMaterialsOpIdx, setManagingMaterialsOpIdx] = useState<number | null>(null);
 
-    const planStrategyName = task.plan?.strategy_package;
-    const selectedStrategy = planStrategyName && planStrategyName !== 'none'
-        ? strategies.find(s => s.name === planStrategyName)
+    // Save As Template Modal state
+    const [isSaveTemplateOpen, setIsSaveTemplateOpen] = useState(false);
+    const [newTemplateName, setNewTemplateName] = useState('');
+    const [isSavingTemplate, setIsSavingTemplate] = useState(false);
+
+    const planStrategyId = task.plan?.maintenance_strategy_id;
+    const selectedStrategy = planStrategyId
+        ? strategies.find(s => s.id === planStrategyId)
         : null;
     const availablePackages = selectedStrategy?.packages || [];
 
     // Convert to form data
     const existingTaskList = task.task_list || {
-        type: 'general', status: '1', description: task.name, work_center: '', plant: '', usage: '', strategy_package: task.plan?.strategy_package || 'none', operations: []
+        type: 'general', status: '1', description: task.name, work_center: '', plant: '', usage: '', maintenance_strategy_id: planStrategyId || null, operations: []
     } as TaskList;
 
     const { data, setData, put, processing } = useForm<{ task_list: TaskList }>({
@@ -60,7 +66,7 @@ export default function EditTaskList({ task, masterData }: Props) {
             ...data.task_list,
             operations: [
                 ...currentOps,
-                { operation_number: nextNum, short_text: '', work_center: '', duration_normal: 1, duration_unit: 'H', number_of_people: 1, control_key: 'PM01', strategy_package: '' }
+                { operation_number: nextNum, short_text: '', work_center: '', duration_normal: 1, duration_unit: 'H', number_of_people: 1, control_key: 'PM01', maintenance_strategy_package_id: null }
             ] as TaskListOperation[]
         });
     };
@@ -112,15 +118,92 @@ export default function EditTaskList({ task, masterData }: Props) {
         setData('task_list', { ...data.task_list, operations: newOps });
     };
 
+    const handleApplyTemplate = (templateId: string) => {
+        if (!templateId || templateId === 'none') return;
+        const template = templates.find(t => t.id === parseInt(templateId));
+        if (!template) return;
+
+        const currentOps: TaskListOperation[] = data.task_list.operations || [];
+        const highestNum = currentOps.length > 0 ? Math.max(...currentOps.map(o => o.operation_number)) : 0;
+
+        const mappedOps: TaskListOperation[] = (template.operations || []).map((op: any, idx: number) => {
+            const mappedMats = (op.materials || []).map((mat: any) => ({
+                ...mat,
+                id: undefined,
+                template_task_list_operation_id: undefined,
+                task_list_operation_id: undefined
+            }));
+
+            return {
+                ...op,
+                id: undefined, // ensure it's treated as new
+                task_list_id: undefined,
+                template_task_list_id: undefined,
+                operation_number: highestNum + (idx + 1) * 10,
+                materials: mappedMats
+            } as any;
+        });
+
+        setData('task_list', {
+            ...data.task_list,
+            operations: [...currentOps, ...mappedOps]
+        });
+    };
+
+    const handleSaveAsTemplate = () => {
+        if (!newTemplateName.trim()) return;
+        setIsSavingTemplate(true);
+        router.post(route('template-task-lists.save-from-task', task.id), {
+            template_name: newTemplateName
+        }, {
+            onSuccess: () => {
+                setIsSaveTemplateOpen(false);
+                setNewTemplateName('');
+            },
+            onFinish: () => setIsSavingTemplate(false),
+            preserveScroll: true
+        });
+    };
+
     return (
         <TaskLayout task={task} title="Taaklijst">
             <form onSubmit={handleSubmit} className="space-y-6">
 
                 {/* Header Data */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Taaklijst Header</CardTitle>
-                        <CardDescription>De inhoudelijke instructies van het onderhoud.</CardDescription>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle>Taaklijst Header</CardTitle>
+                            <CardDescription>De inhoudelijke instructies van het onderhoud.</CardDescription>
+                        </div>
+                        <div className="flex gap-2">
+                            {templates.filter(t => t.maintenance_strategy_id === (planStrategyId || null)).length > 0 && (
+                                <Select onValueChange={handleApplyTemplate}>
+                                    <SelectTrigger className="w-[200px] h-9">
+                                        <SelectValue placeholder="Sjabloon toevoegen..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Sjabloon toevoegen...</SelectItem>
+                                        {templates
+                                            .filter(t => t.maintenance_strategy_id === (planStrategyId || null))
+                                            .map(t => (
+                                                <SelectItem key={t.id} value={String(t.id)}>
+                                                    {t.name}
+                                                </SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                className="h-9"
+                                onClick={() => setIsSaveTemplateOpen(true)}
+                                disabled={!task.task_list?.id} // Only save if the task list exists on the backend
+                            >
+                                Als sjabloon opslaan
+                            </Button>
+                        </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
@@ -151,18 +234,11 @@ export default function EditTaskList({ task, masterData }: Props) {
                             </div>
                             <div className="grid gap-2">
                                 <Label>Strategie Referentie</Label>
-                                <Select
-                                    value={data.task_list.strategy_package || 'none'}
-                                    onValueChange={(val) => setData('task_list', { ...data.task_list, strategy_package: val })}
-                                >
-                                    <SelectTrigger><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">Geen (Single Cycle plan)</SelectItem>
-                                        {strategies.map((strat: any) => (
-                                            <SelectItem key={strat.id} value={strat.key}>{strat.label}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <Input
+                                    value={selectedStrategy ? selectedStrategy.name : 'Geen (Single Cycle plan)'}
+                                    disabled
+                                    className="bg-muted/50"
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Plant</Label>
@@ -248,23 +324,22 @@ export default function EditTaskList({ task, masterData }: Props) {
                                             <TableCell>
                                                 {availablePackages.length > 0 ? (
                                                     <Select
-                                                        value={op.strategy_package || ''}
-                                                        onValueChange={(val) => handleOpChange(idx, 'strategy_package', val)}
+                                                        value={op.maintenance_strategy_package_id ? op.maintenance_strategy_package_id.toString() : 'none'}
+                                                        onValueChange={(val) => handleOpChange(idx, 'maintenance_strategy_package_id', val === 'none' ? null : parseInt(val))}
                                                     >
                                                         <SelectTrigger className="h-8"><SelectValue placeholder="Kies package" /></SelectTrigger>
                                                         <SelectContent>
+                                                            <SelectItem value="none">Geen package</SelectItem>
                                                             {availablePackages.map((pkg: any) => (
-                                                                <SelectItem key={pkg.id} value={pkg.name}>{pkg.name}</SelectItem>
+                                                                <SelectItem key={pkg.id} value={pkg.id.toString()}>{pkg.name}</SelectItem>
                                                             ))}
                                                         </SelectContent>
                                                     </Select>
                                                 ) : (
                                                     <Input
                                                         className="p-1 text-sm h-8"
-                                                        value={op.strategy_package || ''}
-                                                        onChange={(e) => handleOpChange(idx, 'strategy_package', e.target.value)}
-                                                        placeholder="e.g. 1M of 1 JR"
-                                                        disabled={Boolean(planStrategyName && planStrategyName !== 'none')}
+                                                        value="Geen Packages"
+                                                        disabled
                                                     />
                                                 )}
                                             </TableCell>
@@ -365,6 +440,35 @@ export default function EditTaskList({ task, masterData }: Props) {
                     )}
                     <DialogFooter>
                         <Button type="button" onClick={() => setManagingMaterialsOpIdx(null)}>Klaar</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Save as Template Modal */}
+            <Dialog open={isSaveTemplateOpen} onOpenChange={setIsSaveTemplateOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Opslaan als Sjabloon</DialogTitle>
+                        <DialogDescription>
+                            Sla deze bestaande taaklijst (inclusief alle regels) op als een nieuw sjabloon zodat hij hergebruikt kan worden.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="space-y-2">
+                            <Label>Naam voor nieuw Sjabloon</Label>
+                            <Input
+                                placeholder="bijv. Standaard Inspectie Pomp..."
+                                value={newTemplateName}
+                                onChange={(e) => setNewTemplateName(e.target.value)}
+                                autoFocus
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsSaveTemplateOpen(false)}>Annuleren</Button>
+                        <Button onClick={handleSaveAsTemplate} disabled={isSavingTemplate || !newTemplateName.trim()}>
+                            {isSavingTemplate ? 'Bezig met opslaan...' : 'Sjabloon Opslaan'}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

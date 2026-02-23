@@ -63,6 +63,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('articles', ArticleController::class)->except(['create', 'show', 'edit']);
     Route::resource('sap-objects', SapObjectController::class)->except(['create', 'show', 'edit']);
     Route::resource('strategies', \App\Http\Controllers\MaintenanceStrategyController::class)->except(['create', 'show', 'edit']);
+    Route::resource('template-task-lists', \App\Http\Controllers\TemplateTaskListController::class);
+    Route::post('template-task-lists/save-from-task/{maintenanceTask}', [\App\Http\Controllers\TemplateTaskListController::class, 'saveFromTask'])->name('template-task-lists.save-from-task');
 });
 
 // Socialite OAuth Routes

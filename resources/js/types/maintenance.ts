@@ -22,7 +22,7 @@ export interface MaintenancePlan {
     call_horizon_value?: number;
     start_date?: string;
     is_strategy_plan?: boolean;
-    strategy_package?: string;
+    maintenance_strategy_id?: number;
     scheduling_period_value?: number;
     scheduling_period_unit?: string;
     order_type?: string;
@@ -51,7 +51,7 @@ export interface TaskList {
     plant?: string;
     status: string;
     group_counter?: string;
-    strategy_package?: string;
+    maintenance_strategy_id?: number;
     usage?: string;
     general_instructions?: string;
     operations?: TaskListOperation[];
@@ -68,7 +68,7 @@ export interface TaskListOperation {
     duration_normal?: number;
     duration_unit: string;
     number_of_people: number;
-    strategy_package?: string;
+    maintenance_strategy_package_id?: number;
     materials?: OperationMaterial[];
     documents?: OperationDocument[];
 }
@@ -90,4 +90,41 @@ export interface OperationDocument {
     document_part: string;
     document_version: string;
     description?: string;
+}
+
+export interface TemplateTaskList {
+    id?: number;
+    name: string;
+    description?: string;
+    work_center?: string;
+    plant?: string;
+    usage?: string;
+    general_instructions?: string;
+    maintenance_strategy_id?: number;
+    operations?: TemplateTaskListOperation[];
+    operations_count?: number;
+}
+
+export interface TemplateTaskListOperation {
+    id?: number;
+    template_task_list_id?: number;
+    operation_number: number;
+    control_key: string;
+    short_text: string;
+    long_text?: string;
+    work_center?: string;
+    duration_normal?: number;
+    duration_unit: string;
+    number_of_people: number;
+    maintenance_strategy_package_id?: number;
+    materials?: TemplateTaskListOperationMaterial[];
+}
+
+export interface TemplateTaskListOperationMaterial {
+    id?: number;
+    template_task_list_operation_id?: number;
+    material_number: string;
+    description?: string;
+    quantity: number;
+    unit: string;
 }

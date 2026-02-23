@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, Bot, Database, Folder, LayoutGrid, Wrench, Package, Hexagon, Network } from 'lucide-react';
+import { BookOpen, Bot, Database, Folder, LayoutGrid, Wrench, Package, Hexagon, Network, CopyCheck } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -26,6 +26,11 @@ const mainNavItems: NavItem[] = [
         title: 'Onderhoudstaken',
         href: '/maintenance-tasks',
         icon: Wrench,
+    },
+    {
+        title: 'Sjablonen',
+        href: '/template-task-lists',
+        icon: CopyCheck,
     },
     {
         title: 'Artikelen',

@@ -128,7 +128,7 @@ class MaintenanceTaskController extends Controller
             abort(403);
         }
 
-        $maintenanceTask->load(['taskList.operations.materials', 'taskList.operations.documents']);
+        $maintenanceTask->load(['plan', 'taskList.operations.materials', 'taskList.operations.documents']);
 
         $masterData = [
             'strategies' => \App\Models\MaintenanceStrategy::with('packages')->orderBy('name')->get(),
@@ -136,6 +136,7 @@ class MaintenanceTaskController extends Controller
             'workCenters' => MasterData::where('category', 'main_work_center')->where('is_active', true)->orderBy('sort_order')->get(),
             'plants' => MasterData::where('category', 'plant')->where('is_active', true)->orderBy('sort_order')->get(),
             'articles' => \App\Models\Article::orderBy('article_number')->get(),
+            'templates' => \App\Models\TemplateTaskList::with(['operations.materials', 'operations.strategyPackage', 'strategy'])->orderBy('name')->get(),
         ];
 
         return Inertia::render('maintenance-tasks/task-list', [

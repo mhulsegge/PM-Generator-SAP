@@ -11,9 +11,11 @@ class MasterDataSeeder extends Seeder
     {
         $data = [
             'frequency_unit' => [
-                ['key' => 'WK', 'label' => 'Weken'],
-                ['key' => 'MND', 'label' => 'Maanden'],
-                ['key' => 'JR', 'label' => 'Jaren'],
+                ['key' => 'D', 'label' => 'Dagen'],
+                ['key' => 'W', 'label' => 'Weken'],
+                ['key' => 'M', 'label' => 'Maanden'],
+                ['key' => 'K', 'label' => 'Kwartalen'],
+                ['key' => 'J', 'label' => 'Jaren'],
             ],
             'discipline' => [
                 ['key' => 'W', 'label' => 'Werktuigbouwkunde'],

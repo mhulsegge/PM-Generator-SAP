@@ -31,10 +31,9 @@ export default function MaintenancePlanPage({ task, masterData }: Props) {
     // The first item gives us the "object" from the import
     const firstItem = task.items?.[0];
 
-    // Pre-fill: use saved plan values, fall back to defaults from master data
     const { data, setData, put, processing, errors } = useForm({
         plan: {
-            strategy_package: task.plan?.strategy_package || 'none',
+            maintenance_strategy_id: task.plan?.maintenance_strategy_id || null,
             frequency_unit: task.plan?.frequency_unit || defaults.frequency_unit || 'WK',
             frequency_value: task.plan?.frequency_value || 1,
             start_date: task.plan?.start_date || '',
@@ -152,8 +151,12 @@ export default function MaintenancePlanPage({ task, masterData }: Props) {
                                 <div className="grid gap-2">
                                     <Label>Maintenance Strategy</Label>
                                     <Select
-                                        value={data.plan.strategy_package}
-                                        onValueChange={(val) => setData('plan', { ...data.plan, strategy_package: val, is_strategy_plan: val !== 'none' })}
+                                        value={data.plan.maintenance_strategy_id ? data.plan.maintenance_strategy_id.toString() : "none"}
+                                        onValueChange={(val) => setData('plan', {
+                                            ...data.plan,
+                                            maintenance_strategy_id: val === 'none' ? null : parseInt(val),
+                                            is_strategy_plan: val !== 'none'
+                                        })}
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Kies een strategie (optioneel)" />
@@ -161,7 +164,7 @@ export default function MaintenancePlanPage({ task, masterData }: Props) {
                                         <SelectContent>
                                             <SelectItem value="none">Geen (Single Cycle Plan)</SelectItem>
                                             {strategies.map((strat: any) => (
-                                                <SelectItem key={strat.id} value={strat.name}>
+                                                <SelectItem key={strat.id} value={strat.id.toString()}>
                                                     {strat.name} {strat.description ? `- ${strat.description}` : ''}
                                                 </SelectItem>
                                             ))}
@@ -171,7 +174,7 @@ export default function MaintenancePlanPage({ task, masterData }: Props) {
                             </div>
 
                             {/* Cycle info (if not strategy) */}
-                            {(!data.plan.strategy_package || data.plan.strategy_package === 'none') && (
+                            {(!data.plan.maintenance_strategy_id) && (
                                 <div className="space-y-4 border-b pb-6">
                                     <h3 className="text-sm font-semibold text-muted-foreground uppercase">Single Cycle</h3>
                                     <div className="grid grid-cols-2 gap-4">

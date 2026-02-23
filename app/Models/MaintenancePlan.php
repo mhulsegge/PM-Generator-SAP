@@ -14,7 +14,7 @@ class MaintenancePlan extends Model
         'call_horizon_value',
         'start_date',
         'is_strategy_plan',
-        'strategy_package',
+        'maintenance_strategy_id',
         'discipline',
         'scheduling_period_value',
         'scheduling_period_unit',
@@ -22,6 +22,11 @@ class MaintenancePlan extends Model
         'completion_requirement',
         'auto_order_generation',
     ];
+
+    public function strategy()
+    {
+        return $this->belongsTo(MaintenanceStrategy::class, 'maintenance_strategy_id');
+    }
 
     public function tasks()
     {

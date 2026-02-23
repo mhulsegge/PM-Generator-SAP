@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash, Edit, ArrowLeft, Upload, Network } from 'lucide-react';
 
 interface StrategyPackage {
@@ -28,9 +29,10 @@ interface MaintenanceStrategy {
 interface Props {
     strategies: MaintenanceStrategy[];
     activeStrategy: MaintenanceStrategy | null;
+    frequencyUnits: any[];
 }
 
-export default function StrategiesIndex({ strategies, activeStrategy }: Props) {
+export default function StrategiesIndex({ strategies, activeStrategy, frequencyUnits }: Props) {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editStrategy, setEditStrategy] = useState<MaintenanceStrategy | null>(null);
 
@@ -45,7 +47,7 @@ export default function StrategiesIndex({ strategies, activeStrategy }: Props) {
     const { data: packageData, setData: setPackageData, post: postPackage, put: putPackage, processing: packageProcessing, reset: resetPackage, errors: packageErrors } = useForm({
         name: '',
         cycle_value: 1,
-        cycle_unit: 'MON',
+        cycle_unit: 'W',
         hierarchy_short_text: '',
     });
 
@@ -292,12 +294,22 @@ export default function StrategiesIndex({ strategies, activeStrategy }: Props) {
                                                         />
                                                     </div>
                                                     <div className="grid gap-2">
-                                                        <Label>Cyclus Eenheid (MON/WK)</Label>
-                                                        <Input
+                                                        <Label>Cyclus Eenheid</Label>
+                                                        <Select
                                                             value={packageData.cycle_unit}
-                                                            onChange={e => setPackageData('cycle_unit', e.target.value)}
-                                                            required
-                                                        />
+                                                            onValueChange={val => setPackageData('cycle_unit', val)}
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Kies eenheid" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {frequencyUnits?.map((unit: any) => (
+                                                                    <SelectItem key={unit.key} value={unit.key}>
+                                                                        {unit.label} ({unit.key})
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
                                                     </div>
                                                 </div>
                                                 <div className="grid gap-2">

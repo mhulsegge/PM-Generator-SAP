@@ -21,9 +21,15 @@ class MaintenanceStrategyController extends Controller
             $activeStrategy = MaintenanceStrategy::with('packages')->find($activeStrategyId);
         }
 
+        $frequencyUnits = \App\Models\MasterData::where('category', 'frequency_unit')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
         return Inertia::render('strategies/index', [
             'strategies' => $strategies,
             'activeStrategy' => $activeStrategy,
+            'frequencyUnits' => $frequencyUnits,
         ]);
     }
 
